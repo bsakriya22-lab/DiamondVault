@@ -4,6 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:csv/csv.dart';
 import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
+import 'dart:html' as html;
 import 'add_item_screen.dart';
 import 'item_detail_screen.dart';
 
@@ -208,19 +211,37 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
 
   Future<void> _uploadCsv() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.any,
-        withData: true,
-      );
+      String csvString;
+      if (kIsWeb) {
+        // Web-specific file picking
+        final html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
+        uploadInput.accept = '.csv';
+        uploadInput.click();
 
-      if (result == null || result.files.isEmpty) return;
+        await uploadInput.onChange.first;
+        if (uploadInput.files!.isEmpty) return;
 
-      final file = result.files.first;
-      if (!file.name!.toLowerCase().endsWith('.csv')) {
-        _showSnackBar('Please select a CSV file');
-        return;
+        final file = uploadInput.files![0];
+        final reader = html.FileReader();
+        reader.readAsText(file);
+        await reader.onLoad.first;
+        csvString = reader.result as String;
+      } else {
+        // Mobile/desktop
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.any,
+          withData: true,
+        );
+
+        if (result == null || result.files.isEmpty) return;
+
+        final file = result.files.first;
+        if (!file.name!.toLowerCase().endsWith('.csv')) {
+          _showSnackBar('Please select a CSV file');
+          return;
+        }
+        csvString = String.fromCharCodes(file.bytes!);
       }
-      final csvString = String.fromCharCodes(file.bytes!);
       final csvTable = const CsvToListConverter().convert(csvString);
 
       if (csvTable.isEmpty) {
