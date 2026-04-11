@@ -45,7 +45,8 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   }
 
   void _onTabTapped(int index) {
-    if (!_isEmailVerified && index != 4) { // Only allow menu (index 4) for unverified users
+    if (!_isEmailVerified && index != 4) {
+      // Only allow menu (index 4) for unverified users
       _showVerificationDialog();
       return;
     }
@@ -65,13 +66,15 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child:
+                const Text('Cancel', style: TextStyle(color: Colors.white54)),
           ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
               try {
-                await FirebaseAuth.instance.currentUser?.sendEmailVerification();
+                await FirebaseAuth.instance.currentUser
+                    ?.sendEmailVerification();
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -105,28 +108,32 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: !_isEmailVerified ? AppBar(
-        backgroundColor: Colors.orange,
-        title: const Text('Email Verification Required',
-            style: TextStyle(color: Colors.white, fontSize: 14)),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              await _checkEmailVerification();
-              if (_isEmailVerified && mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Email verified! All features now available.'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              }
-            },
-            child: const Text('Check Status',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-          ),
-        ],
-      ) : null,
+      appBar: !_isEmailVerified
+          ? AppBar(
+              backgroundColor: Colors.orange,
+              title: const Text('Email Verification Required',
+                  style: TextStyle(color: Colors.white, fontSize: 14)),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await _checkEmailVerification();
+                    if (_isEmailVerified && mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Email verified! All features now available.'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Check Status',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.w600)),
+                ),
+              ],
+            )
+          : null,
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,

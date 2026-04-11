@@ -44,8 +44,8 @@ class UserMenuScreen extends StatelessWidget {
                           color: const Color(0xFF1A1A2E),
                           shape: BoxShape.circle,
                         ),
-                        child:
-                            const Icon(Icons.person, size: 28, color: Colors.white),
+                        child: const Icon(Icons.person,
+                            size: 28, color: Colors.white),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -73,7 +73,8 @@ class UserMenuScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.orange.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                        border:
+                            Border.all(color: Colors.orange.withOpacity(0.3)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,7 +106,8 @@ class UserMenuScreen extends StatelessWidget {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text('Verification email sent!'),
+                                        content:
+                                            Text('Verification email sent!'),
                                         backgroundColor: Colors.green,
                                       ),
                                     );
@@ -114,7 +116,8 @@ class UserMenuScreen extends StatelessWidget {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text('Failed to send verification email.'),
+                                        content: Text(
+                                            'Failed to send verification email.'),
                                         backgroundColor: Colors.red,
                                       ),
                                     );
@@ -124,7 +127,8 @@ class UserMenuScreen extends StatelessWidget {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.orange,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
                                 textStyle: const TextStyle(fontSize: 12),
                               ),
                               child: const Text('Send Verification Email'),
@@ -136,16 +140,19 @@ class UserMenuScreen extends StatelessWidget {
                   ] else if (user != null && user.emailVerified) ...[
                     const SizedBox(height: 12),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: Colors.green.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.green.withOpacity(0.3)),
+                        border:
+                            Border.all(color: Colors.green.withOpacity(0.3)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.verified, color: Colors.green, size: 16),
+                          const Icon(Icons.verified,
+                              color: Colors.green, size: 16),
                           const SizedBox(width: 6),
                           const Text('Email verified',
                               style: TextStyle(
@@ -303,8 +310,7 @@ class UserMenuScreen extends StatelessWidget {
               const Text('Verify email',
                   style: TextStyle(fontSize: 12, color: Colors.orange))
             else
-              Icon(Icons.arrow_forward_ios,
-                  size: 14, color: Colors.black38),
+              Icon(Icons.arrow_forward_ios, size: 14, color: Colors.black38),
           ],
         ),
       ),

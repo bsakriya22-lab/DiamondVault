@@ -37,12 +37,19 @@ class _SignupScreenState extends State<SignupScreen> {
       );
 
       // Send email verification
-      await FirebaseAuth.instance.currentUser?.sendEmailVerification();
+      try {
+        await FirebaseAuth.instance.currentUser?.sendEmailVerification();
+        print('Email verification sent successfully');
+      } catch (emailError) {
+        print('Failed to send verification email: $emailError');
+        // Continue with signup even if email fails
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Account created! Please check your email to verify your account.'),
+            content: Text(
+                'Account created! Please check your email to verify your account.'),
             backgroundColor: Colors.green,
           ),
         );
@@ -50,8 +57,11 @@ class _SignupScreenState extends State<SignupScreen> {
         // Navigate to menu for unverified users, dashboard for verified
         final user = FirebaseAuth.instance.currentUser;
         final targetIndex = (user?.emailVerified ?? false) ? 0 : 4;
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (_) => MainNavigationWrapper(initialIndex: targetIndex)));
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (_) =>
+                    MainNavigationWrapper(initialIndex: targetIndex)));
       }
     } on FirebaseAuthException catch (e) {
       setState(() {

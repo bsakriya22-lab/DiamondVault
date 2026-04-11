@@ -25,7 +25,8 @@ class DashboardScreen extends StatelessWidget {
     };
   }
 
-  Future<double> _fetchPartyBalance(String userId, String partyCollection) async {
+  Future<double> _fetchPartyBalance(
+      String userId, String partyCollection) async {
     final partyDocs = await FirebaseFirestore.instance
         .collection('users')
         .doc(userId)
@@ -34,9 +35,8 @@ class DashboardScreen extends StatelessWidget {
     double total = 0;
 
     for (final party in partyDocs.docs) {
-      final transactions = await party.reference
-          .collection('transactions')
-          .get();
+      final transactions =
+          await party.reference.collection('transactions').get();
       for (final tx in transactions.docs) {
         final data = tx.data();
         final amount = (data['amount'] as num?)?.toDouble() ?? 0;
