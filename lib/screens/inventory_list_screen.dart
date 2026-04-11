@@ -214,7 +214,8 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
       String csvString;
       if (kIsWeb) {
         // Web-specific file picking
-        final html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
+        final html.FileUploadInputElement uploadInput =
+            html.FileUploadInputElement();
         uploadInput.accept = '.csv';
         uploadInput.click();
 
@@ -250,9 +251,21 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
       }
 
       final headers = csvTable[0].map((e) => e.toString().trim()).toList();
-      final requiredHeaders = ['serialNumber', 'name', 'itemCategory', 'goldKarat', 'goldWeightGrams', 'stockCount'];
+      final requiredHeaders = [
+        'serialNumber',
+        'name',
+        'itemCategory',
+        'goldKarat',
+        'goldWeightGrams',
+        'stockCount'
+      ];
 
-      final optionalHeaders = ['description', 'photoUrl', 'diamondData', 'stoneData'];
+      final optionalHeaders = [
+        'description',
+        'photoUrl',
+        'diamondData',
+        'stoneData'
+      ];
 
       for (final req in requiredHeaders) {
         if (!headers.contains(req)) {
@@ -280,7 +293,8 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
               try {
                 final parsed = jsonDecode(value.toString());
                 if (parsed is List) {
-                  data[header == 'diamondData' ? 'diamonds' : 'stones'] = parsed;
+                  data[header == 'diamondData' ? 'diamonds' : 'stones'] =
+                      parsed;
                 }
               } catch (_) {
                 // If not valid JSON, skip
