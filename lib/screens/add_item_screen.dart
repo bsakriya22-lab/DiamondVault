@@ -8,31 +8,32 @@ import 'package:firebase_auth/firebase_auth.dart';
 // ── Diamond helpers ───────────────────────────────────────────────────────────
 
 String getDiamondCategory(double weightPerStoneCents) {
-  if (weightPerStoneCents < 7) return '0–6 cent';
-  if (weightPerStoneCents < 14) return '7–13 cent';
-  if (weightPerStoneCents < 19) return '14–18 cent';
-  if (weightPerStoneCents < 23) return '19–22 cent';
-  if (weightPerStoneCents < 28) return '23–27 cent';
-  if (weightPerStoneCents < 37) return '28–36 cent';
-  if (weightPerStoneCents < 44) return '37–43 cent';
-  if (weightPerStoneCents < 66) return '44–65 cent';
-  if (weightPerStoneCents < 81) return '66–80 cent';
-  if (weightPerStoneCents < 100) return '81–99 cent';
+  final carats = weightPerStoneCents / 100;
+  if (carats < 0.07) return '0–0.06 carat';
+  if (carats < 0.14) return '0.07–0.13 carat';
+  if (carats < 0.19) return '0.14–0.18 carat';
+  if (carats < 0.23) return '0.19–0.22 carat';
+  if (carats < 0.28) return '0.23–0.27 carat';
+  if (carats < 0.37) return '0.28–0.36 carat';
+  if (carats < 0.44) return '0.37–0.43 carat';
+  if (carats < 0.66) return '0.44–0.65 carat';
+  if (carats < 0.81) return '0.66–0.80 carat';
+  if (carats < 1.0) return '0.81–0.99 carat';
   return '1 carat & above';
 }
 
 Color getCategoryColor(String category) {
   const m = {
-    '0–6 cent': Color(0xFF185FA5),
-    '7–13 cent': Color(0xFF0F6E56),
-    '14–18 cent': Color(0xFF3B6D11),
-    '19–22 cent': Color(0xFF854F0B),
-    '23–27 cent': Color(0xFF854F0B),
-    '28–36 cent': Color(0xFF993556),
-    '37–43 cent': Color(0xFF534AB7),
-    '44–65 cent': Color(0xFF993C1D),
-    '66–80 cent': Color(0xFFA32D2D),
-    '81–99 cent': Color(0xFF791F1F),
+    '0–0.06 carat': Color(0xFF185FA5),
+    '0.07–0.13 carat': Color(0xFF0F6E56),
+    '0.14–0.18 carat': Color(0xFF3B6D11),
+    '0.19–0.22 carat': Color(0xFF854F0B),
+    '0.23–0.27 carat': Color(0xFF854F0B),
+    '0.28–0.36 carat': Color(0xFF993556),
+    '0.37–0.43 carat': Color(0xFF534AB7),
+    '0.44–0.65 carat': Color(0xFF993C1D),
+    '0.66–0.80 carat': Color(0xFFA32D2D),
+    '0.81–0.99 carat': Color(0xFF791F1F),
     '1 carat & above': Color(0xFF26215C),
   };
   return m[category] ?? const Color(0xFF444441);
@@ -40,16 +41,16 @@ Color getCategoryColor(String category) {
 
 Color getCategoryBg(String category) {
   const m = {
-    '0–6 cent': Color(0xFFE6F1FB),
-    '7–13 cent': Color(0xFFE1F5EE),
-    '14–18 cent': Color(0xFFEAF3DE),
-    '19–22 cent': Color(0xFFFAEEDA),
-    '23–27 cent': Color(0xFFFAEEDA),
-    '28–36 cent': Color(0xFFFBEAF0),
-    '37–43 cent': Color(0xFFEEEDFE),
-    '44–65 cent': Color(0xFFFAECE7),
-    '66–80 cent': Color(0xFFFCEBEB),
-    '81–99 cent': Color(0xFFF7C1C1),
+    '0–0.06 carat': Color(0xFFE6F1FB),
+    '0.07–0.13 carat': Color(0xFFE1F5EE),
+    '0.14–0.18 carat': Color(0xFFEAF3DE),
+    '0.19–0.22 carat': Color(0xFFFAEEDA),
+    '0.23–0.27 carat': Color(0xFFFAEEDA),
+    '0.28–0.36 carat': Color(0xFFFBEAF0),
+    '0.37–0.43 carat': Color(0xFFEEEDFE),
+    '0.44–0.65 carat': Color(0xFFFAECE7),
+    '0.66–0.80 carat': Color(0xFFFCEBEB),
+    '0.81–0.99 carat': Color(0xFFF7C1C1),
     '1 carat & above': Color(0xFFCECBF6),
   };
   return m[category] ?? const Color(0xFFF1EFE8);
@@ -648,7 +649,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         fontWeight: FontWeight.w600,
                         color: getCategoryColor(g.category!))),
                 const Spacer(),
-                Text('${(g.weightPerStoneCents! / 100).toStringAsFixed(2)} ct/stone (${g.weightPerStoneCents!.toStringAsFixed(0)}¢)',
+                Text('${(g.weightPerStoneCents! / 100).toStringAsFixed(2)} ct/stone',
                     style: TextStyle(
                         fontSize: 12,
                         color: getCategoryColor(g.category!).withOpacity(0.8))),

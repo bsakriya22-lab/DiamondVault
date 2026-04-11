@@ -172,7 +172,7 @@ class ItemDetailScreen extends StatelessWidget {
                       _detailRow('Pieces', '$pieces'),
                       _detailRow('Category', dcat),
                       _detailRow('Per Stone',
-                          '${((carats / pieces) * 100).toStringAsFixed(2)} cent (${(carats / pieces).toStringAsFixed(2)} ct)'),
+                          '${(carats / pieces).toStringAsFixed(2)} carat'),
                     ],
                   );
                 }).toList(),
