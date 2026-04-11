@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:csv/csv.dart';
+import 'dart:convert';
 import 'add_item_screen.dart';
 import 'item_detail_screen.dart';
 
@@ -208,14 +209,17 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
   Future<void> _uploadCsv() async {
     try {
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['csv'],
+        type: FileType.any,
         withData: true,
       );
 
       if (result == null || result.files.isEmpty) return;
 
       final file = result.files.first;
+      if (!file.name!.toLowerCase().endsWith('.csv')) {
+        _showSnackBar('Please select a CSV file');
+        return;
+      }
       final csvString = String.fromCharCodes(file.bytes!);
       final csvTable = const CsvToListConverter().convert(csvString);
 
@@ -226,6 +230,8 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
 
       final headers = csvTable[0].map((e) => e.toString().trim()).toList();
       final requiredHeaders = ['serialNumber', 'name', 'itemCategory', 'goldKarat', 'goldWeightGrams', 'stockCount'];
+
+      final optionalHeaders = ['description', 'photoUrl', 'diamondData', 'stoneData'];
 
       for (final req in requiredHeaders) {
         if (!headers.contains(req)) {
@@ -248,6 +254,17 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
           final value = row[j];
           if (header == 'goldWeightGrams' || header == 'stockCount') {
             data[header] = num.tryParse(value.toString())?.toDouble() ?? 0;
+          } else if (header == 'diamondData' || header == 'stoneData') {
+            if (value.toString().isNotEmpty) {
+              try {
+                final parsed = jsonDecode(value.toString());
+                if (parsed is List) {
+                  data[header == 'diamondData' ? 'diamonds' : 'stones'] = parsed;
+                }
+              } catch (_) {
+                // If not valid JSON, skip
+              }
+            }
           } else {
             data[header] = value.toString();
           }

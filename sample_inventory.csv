@@ -1,6 +1,6 @@
-serialNumber,name,itemCategory,goldKarat,goldWeightGrams,stockCount,description,photoUrl
-SN001,Diamond Ring,Ring,18k,5.2,10,Beautiful engagement ring with 1ct diamond,
-SN002,Gold Necklace,Necklace,22k,8.5,5,Elegant gold chain necklace,
-SN003,Platinum Bracelet,Bracelet,Platinum,12.0,3,Deluxe platinum bracelet with gemstones,
-SN004,Emerald Earrings,Earring,18k,3.8,8,Pair of emerald stud earrings,
-SN005,Ruby Pendant,Pendant,14k,4.5,6,Ruby pendant on gold chain,
+serialNumber,name,itemCategory,goldKarat,goldWeightGrams,stockCount,description,photoUrl,diamondData,stoneData
+SN001,Diamond Ring,Ring,18k,5.2,10,Beautiful engagement ring with 1ct diamond,,"[{""category"":""1 carat & above"",""totalCarats"":1.0,""pieces"":1}]",
+SN002,Gold Necklace,Necklace,22k,8.5,5,Elegant gold chain necklace,,,"[{""type"":""Pearl"",""carats"":2.5,""pieces"":10}]"
+SN003,Platinum Bracelet,Bracelet,Platinum,12.0,3,Deluxe platinum bracelet with gemstones,,,"[{""type"":""Ruby"",""carats"":1.2,""pieces"":3},{""type"":""Sapphire"",""carats"":0.8,""pieces"":2}]"
+SN004,Emerald Earrings,Earring,18k,3.8,8,Pair of emerald stud earrings,,,"[{""type"":""Emerald"",""carats"":1.5,""pieces"":2}]"
+SN005,Ruby Pendant,Pendant,14k,4.5,6,Ruby pendant on gold chain,,,"[{""type"":""Ruby"",""carats"":0.75,""pieces"":1}]"
