@@ -6,7 +6,7 @@ import 'package:csv/csv.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
-import 'dart:html' as html;
+import 'package:universal_html/html.dart' as html;
 import 'add_item_screen.dart';
 import 'item_detail_screen.dart';
 
