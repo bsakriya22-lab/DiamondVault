@@ -648,7 +648,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         fontWeight: FontWeight.w600,
                         color: getCategoryColor(g.category!))),
                 const Spacer(),
-                Text('${g.weightPerStoneCents!.toStringAsFixed(2)} cent/stone',
+                Text('${(g.weightPerStoneCents! / 100).toStringAsFixed(2)} ct/stone (${g.weightPerStoneCents!.toStringAsFixed(0)}¢)',
                     style: TextStyle(
                         fontSize: 12,
                         color: getCategoryColor(g.category!).withOpacity(0.8))),
