@@ -191,6 +191,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
           .map((e) => DiamondGroup.fromMap(Map<String, dynamic>.from(e)))
           .toList();
 
+      // Add listeners to existing diamonds for category recalculation
+      for (final diamond in _diamonds) {
+        diamond.caratsCtrl.addListener(() => setState(() => diamond.recalc()));
+        diamond.piecesCtrl.addListener(() => setState(() => diamond.recalc()));
+      }
+
       final sList = d['stones'] as List<dynamic>? ?? [];
       _stones = sList
           .map((e) => StoneGroup.fromMap(Map<String, dynamic>.from(e)))
