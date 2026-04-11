@@ -82,18 +82,36 @@ class _PriceCalculatorScreenState extends State<PriceCalculatorScreen> {
     return diamonds.map((d) {
       final cat = d['category'] ?? '';
       final carats = (d['totalCarats'] as num?)?.toDouble() ?? 0;
-      final cents = carats * 100;
-      final rate = (dRates[cat] as num?)?.toDouble() ?? 0;
-      final price = cents * rate;
+      // Map old cent-based categories to new carat-based categories for backward compatibility
+      final mappedCat = _mapOldCategoryToNew(cat);
+      final rate = (dRates[mappedCat] as num?)?.toDouble() ?? 0;
+      final price = carats * rate;
       return {
-        'label': cat,
+        'label': mappedCat,
         'carats': carats,
-        'cents': cents,
         'rate': rate,
         'price': price,
         'pieces': d['pieces'] ?? 0,
       };
     }).toList();
+  }
+
+  // Map old cent-based categories to new carat-based categories
+  String _mapOldCategoryToNew(String oldCategory) {
+    const mapping = {
+      '0–6 cent': '0–0.06 carat',
+      '7–13 cent': '0.07–0.13 carat',
+      '14–18 cent': '0.14–0.18 carat',
+      '19–22 cent': '0.19–0.22 carat',
+      '23–27 cent': '0.23–0.27 carat',
+      '28–36 cent': '0.28–0.36 carat',
+      '37–43 cent': '0.37–0.43 carat',
+      '44–65 cent': '0.44–0.65 carat',
+      '66–80 cent': '0.66–0.80 carat',
+      '81–99 cent': '0.81–0.99 carat',
+    };
+    return mapping[oldCategory] ??
+        oldCategory; // Return original if no mapping found
   }
 
   double get _diamondSubtotal =>
@@ -324,8 +342,7 @@ class _PriceCalculatorScreenState extends State<PriceCalculatorScreen> {
                       rows: [
                         ..._diamondBreakdown.map((d) => _Row(
                               label: '${d['label']} · ${d['pieces']} pcs',
-                              detail:
-                                  '${d['carats']}ct = ${(d['cents'] as double).toStringAsFixed(1)} cent × NPR ${d['rate']}/cent',
+                              detail: '${d['carats']}ct × NPR ${d['rate']}/ct',
                               amount: d['price'] as double,
                             )),
                         if (_discountPct > 0)

@@ -23,16 +23,16 @@ class _PriceSettingsScreenState extends State<PriceSettingsScreen> {
 
   // Diamond rates per cent
   final Map<String, TextEditingController> _diamondRates = {
-    '0–6 cent': TextEditingController(),
-    '7–13 cent': TextEditingController(),
-    '14–18 cent': TextEditingController(),
-    '19–22 cent': TextEditingController(),
-    '23–27 cent': TextEditingController(),
-    '28–36 cent': TextEditingController(),
-    '37–43 cent': TextEditingController(),
-    '44–65 cent': TextEditingController(),
-    '66–80 cent': TextEditingController(),
-    '81–99 cent': TextEditingController(),
+    '0–0.06 carat': TextEditingController(),
+    '0.07–0.13 carat': TextEditingController(),
+    '0.14–0.18 carat': TextEditingController(),
+    '0.19–0.22 carat': TextEditingController(),
+    '0.23–0.27 carat': TextEditingController(),
+    '0.28–0.36 carat': TextEditingController(),
+    '0.37–0.43 carat': TextEditingController(),
+    '0.44–0.65 carat': TextEditingController(),
+    '0.66–0.80 carat': TextEditingController(),
+    '0.81–0.99 carat': TextEditingController(),
     '1 carat & above': TextEditingController(),
   };
 
@@ -71,7 +71,11 @@ class _PriceSettingsScreenState extends State<PriceSettingsScreen> {
           if (_goldRates.containsKey(k)) _goldRates[k]!.text = '$v';
         });
         diamond.forEach((k, v) {
-          if (_diamondRates.containsKey(k)) _diamondRates[k]!.text = '$v';
+          // Handle migration from old cent-based to new carat-based categories
+          final migratedKey = _migrateDiamondCategoryKey(k);
+          if (_diamondRates.containsKey(migratedKey)) {
+            _diamondRates[migratedKey]!.text = '$v';
+          }
         });
         stone.forEach((k, v) {
           if (_stoneRates.containsKey(k)) _stoneRates[k]!.text = '$v';
@@ -172,7 +176,7 @@ class _PriceSettingsScreenState extends State<PriceSettingsScreen> {
                 const SizedBox(height: 24),
                 _sectionHeader(
                   'Diamond rates',
-                  'Price per cent (NPR)',
+                  'Price per carat (NPR)',
                   const Color(0xFFE6F1FB),
                   const Color(0xFF185FA5),
                   Icons.diamond_outlined,
@@ -181,7 +185,7 @@ class _PriceSettingsScreenState extends State<PriceSettingsScreen> {
                 ..._diamondRates.entries.map((e) => _rateRow(
                     e.key,
                     e.value,
-                    'NPR / cent',
+                    'NPR / carat',
                     const Color(0xFFE6F1FB),
                     const Color(0xFF185FA5))),
 
@@ -269,7 +273,7 @@ class _PriceSettingsScreenState extends State<PriceSettingsScreen> {
                   const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
         ),
         SizedBox(
-          width: 130,
+          width: 160,
           child: TextFormField(
             controller: ctrl,
             keyboardType: TextInputType.number,
@@ -299,5 +303,22 @@ class _PriceSettingsScreenState extends State<PriceSettingsScreen> {
     for (final c in _diamondRates.values) c.dispose();
     for (final c in _stoneRates.values) c.dispose();
     super.dispose();
+  }
+
+  // Migrate old cent-based category keys to new carat-based keys
+  String _migrateDiamondCategoryKey(String oldKey) {
+    const migrationMap = {
+      '0–6 cent': '0–0.06 carat',
+      '7–13 cent': '0.07–0.13 carat',
+      '14–18 cent': '0.14–0.18 carat',
+      '19–22 cent': '0.19–0.22 carat',
+      '23–27 cent': '0.23–0.27 carat',
+      '28–36 cent': '0.28–0.36 carat',
+      '37–43 cent': '0.37–0.43 carat',
+      '44–65 cent': '0.44–0.65 carat',
+      '66–80 cent': '0.66–0.80 carat',
+      '81–99 cent': '0.81–0.99 carat',
+    };
+    return migrationMap[oldKey] ?? oldKey;
   }
 }
