@@ -251,77 +251,82 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
       }
 
       final headers = csvTable[0].map((e) => e.toString().trim()).toList();
-      final requiredHeaders = [
-        'serialNumber',
-        'name',
-        'itemCategory',
-        'goldKarat',
-        'goldWeightGrams',
-        'stockCount'
-      ];
-
-      final optionalHeaders = [
-        'description',
-        'photoUrl',
-        'diamondData',
-        'stoneData'
-      ];
+      final requiredHeaders = ['serialNumber', 'diamondCarats', 'diamondPieces'];
 
       for (final req in requiredHeaders) {
         if (!headers.contains(req)) {
-          _showSnackBar('CSV must contain column: $req');
+          _showSnackBar('CSV must contain columns: serialNumber, diamondCarats, diamondPieces');
           return;
         }
       }
 
       final userId = FirebaseAuth.instance.currentUser!.uid;
       final batch = FirebaseFirestore.instance.batch();
-      int uploaded = 0;
+      int updated = 0;
+
+      // Group by serialNumber
+      final updates = <String, List<Map<String, dynamic>>>{};
 
       for (int i = 1; i < csvTable.length; i++) {
         final row = csvTable[i];
         if (row.length != headers.length) continue;
 
-        final data = <String, dynamic>{};
-        for (int j = 0; j < headers.length; j++) {
-          final header = headers[j];
-          final value = row[j];
-          if (header == 'goldWeightGrams' || header == 'stockCount') {
-            data[header] = num.tryParse(value.toString())?.toDouble() ?? 0;
-          } else if (header == 'diamondData' || header == 'stoneData') {
-            if (value.toString().isNotEmpty) {
-              try {
-                final parsed = jsonDecode(value.toString());
-                if (parsed is List) {
-                  data[header == 'diamondData' ? 'diamonds' : 'stones'] =
-                      parsed;
-                }
-              } catch (_) {
-                // If not valid JSON, skip
-              }
-            }
-          } else {
-            data[header] = value.toString();
-          }
-        }
+        final serialNumber = row[headers.indexOf('serialNumber')].toString().trim();
+        final carats = double.tryParse(row[headers.indexOf('diamondCarats')].toString()) ?? 0;
+        final pieces = int.tryParse(row[headers.indexOf('diamondPieces')].toString()) ?? 0;
 
-        data['createdAt'] = FieldValue.serverTimestamp();
-        data['updatedAt'] = FieldValue.serverTimestamp();
+        if (serialNumber.isEmpty || carats <= 0 || pieces <= 0) continue;
 
-        final docRef = FirebaseFirestore.instance
+        final category = _getDiamondCategory(carats);
+        final diamond = {
+          'category': category,
+          'totalCarats': carats,
+          'pieces': pieces,
+        };
+
+        updates.putIfAbsent(serialNumber, () => []).add(diamond);
+      }
+
+      // Update each item
+      for (final entry in updates.entries) {
+        final serialNumber = entry.key;
+        final diamonds = entry.value;
+
+        // Find the doc by serialNumber
+        final query = await FirebaseFirestore.instance
             .collection('users')
             .doc(userId)
             .collection('inventory')
-            .doc();
-        batch.set(docRef, data);
-        uploaded++;
+            .where('serialNumber', isEqualTo: serialNumber)
+            .limit(1)
+            .get();
+
+        if (query.docs.isNotEmpty) {
+          final docRef = query.docs.first.reference;
+          batch.update(docRef, {'diamonds': diamonds});
+          updated++;
+        }
       }
 
       await batch.commit();
-      _showSnackBar('Uploaded $uploaded items successfully');
+      _showSnackBar('Updated $updated items with diamond data');
     } catch (e) {
       _showSnackBar('Error uploading CSV: $e');
     }
+  }
+
+  String _getDiamondCategory(double carats) {
+    if (carats <= 0.06) return '0–0.06 carat';
+    if (carats <= 0.13) return '0.07–0.13 carat';
+    if (carats <= 0.18) return '0.14–0.18 carat';
+    if (carats <= 0.22) return '0.19–0.22 carat';
+    if (carats <= 0.27) return '0.23–0.27 carat';
+    if (carats <= 0.36) return '0.28–0.36 carat';
+    if (carats <= 0.43) return '0.37–0.43 carat';
+    if (carats <= 0.65) return '0.44–0.65 carat';
+    if (carats <= 0.80) return '0.66–0.80 carat';
+    if (carats <= 0.99) return '0.81–0.99 carat';
+    return '1 carat & above';
   }
 
   void _showSnackBar(String message) {
