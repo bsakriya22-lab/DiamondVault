@@ -1,45 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dashboard_screen.dart';
-import 'signup_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   String? _errorMessage;
 
-  Future<void> _login() async {
+  Future<void> _signup() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_passwordController.text != _confirmPasswordController.text) {
+      setState(() => _errorMessage = 'Passwords do not match.');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      // Send email verification
+      await FirebaseAuth.instance.currentUser?.sendEmailVerification();
+
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created! Please check your email to verify your account.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to dashboard after successful signup
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (_) => const DashboardScreen()));
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
-        _errorMessage = e.code == 'user-not-found'
-            ? 'No account found with this email.'
-            : e.code == 'wrong-password'
-                ? 'Incorrect password.'
-                : 'Login failed. Please try again.';
+        _errorMessage = e.code == 'email-already-in-use'
+            ? 'An account with this email already exists.'
+            : e.code == 'weak-password'
+                ? 'Password is too weak. Please choose a stronger password.'
+                : 'Signup failed. Please try again.';
       });
     } finally {
       setState(() => _isLoading = false);
@@ -68,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontWeight: FontWeight.w600,
                           color: Colors.white)),
                   const SizedBox(height: 6),
-                  const Text('Sign in to your account',
+                  const Text('Create your account',
                       style: TextStyle(fontSize: 14, color: Colors.white54)),
                   const SizedBox(height: 40),
 
@@ -94,6 +112,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         ? 'Password must be at least 6 characters'
                         : null,
                   ),
+                  const SizedBox(height: 14),
+
+                  // Confirm Password field
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    obscureText: true,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: _inputDecoration('Confirm Password'),
+                    validator: (v) => (v == null || v.isEmpty)
+                        ? 'Please confirm your password'
+                        : null,
+                  ),
                   const SizedBox(height: 12),
 
                   // Error message
@@ -105,11 +135,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: Colors.redAccent, fontSize: 13)),
                     ),
 
-                  // Login button
+                  // Signup button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _login,
+                      onPressed: _isLoading ? null : _signup,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF1A1A2E),
@@ -122,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Text('Sign in',
+                          : const Text('Create Account',
                               style: TextStyle(
                                   fontSize: 15, fontWeight: FontWeight.w600)),
                     ),
@@ -130,12 +160,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Sign up link
+                  // Back to login link
                   Center(
                     child: TextButton(
-                      onPressed: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const SignupScreen())),
-                      child: const Text('Don\'t have an account? Sign up',
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Already have an account? Sign in',
                           style: TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
@@ -168,6 +197,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 }
