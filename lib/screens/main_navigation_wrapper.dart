@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'inventory_list_screen.dart';
 import 'price_calculator_screen.dart';
+import 'parties_screen.dart';
 import 'user_menu_screen.dart';
 
 class MainNavigationWrapper extends StatefulWidget {
@@ -20,6 +21,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     const DashboardScreen(),
     const InventoryListScreen(),
     const PriceCalculatorScreen(),
+    const PartiesScreen(),
     const UserMenuScreen(),
   ];
 
@@ -59,6 +61,11 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
             icon: Icon(Icons.calculate_outlined),
             activeIcon: Icon(Icons.calculate),
             label: 'Calculator',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people_outline),
+            activeIcon: Icon(Icons.people),
+            label: 'Parties',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.menu_outlined),

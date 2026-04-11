@@ -209,6 +209,18 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
     final goldKarat = data['goldKarat'] ?? '18k';
     final goldWeight = data['goldWeightGrams'] ?? 0;
 
+    // Calculate total diamond weight
+    double totalDiamondWeight = 0;
+    final diamonds = data['diamonds'] as List<dynamic>? ?? [];
+    for (final diamond in diamonds) {
+      if (diamond is Map<String, dynamic>) {
+        final carats = diamond['totalCarats'] as num? ?? 0;
+        totalDiamondWeight += carats.toDouble();
+      }
+    }
+    final diamondWeightLabel = totalDiamondWeight > 0
+        ? ' · ${totalDiamondWeight.toStringAsFixed(2)}ct'
+        : '';
     return GestureDetector(
       onTap: () => Navigator.push(
           context,
@@ -297,7 +309,8 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
                             color: const Color(0xFFFAEEDA),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Text('$goldKarat · ${goldWeight}g',
+                          child: Text(
+                              '$goldKarat · ${goldWeight}g$diamondWeightLabel',
                               style: const TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w500,

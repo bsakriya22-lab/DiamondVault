@@ -5,32 +5,60 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
-  Future<Map<String, int>> _fetchCounts() async {
+  Future<Map<String, dynamic>> _fetchCounts() async {
     final userId = FirebaseAuth.instance.currentUser!.uid;
     final inventory = await FirebaseFirestore.instance
         .collection('users')
         .doc(userId)
         .collection('inventory')
         .get();
-    final clients = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('clients')
-        .get();
-    final suppliers = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('suppliers')
-        .get();
     final lowStock =
         inventory.docs.where((d) => (d['stockCount'] ?? 0) <= 1).length;
+    final totalReceivable = await _fetchPartyBalance(userId, 'clients');
+    final totalPayable = await _fetchPartyBalance(userId, 'suppliers');
 
     return {
       'inventory': inventory.docs.length,
-      'clients': clients.docs.length,
-      'suppliers': suppliers.docs.length,
+      'totalReceivable': totalReceivable,
+      'totalPayable': totalPayable,
       'lowStock': lowStock,
     };
+  }
+
+  Future<double> _fetchPartyBalance(String userId, String partyCollection) async {
+    final partyDocs = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection(partyCollection)
+        .get();
+    double total = 0;
+
+    for (final party in partyDocs.docs) {
+      final transactions = await party.reference
+          .collection('transactions')
+          .get();
+      for (final tx in transactions.docs) {
+        final data = tx.data();
+        final amount = (data['amount'] as num?)?.toDouble() ?? 0;
+        final type = (data['type'] ?? '').toString().toLowerCase();
+        total += amount * _transactionSign(type);
+      }
+    }
+
+    return total;
+  }
+
+  double _transactionSign(String type) {
+    switch (type) {
+      case 'payment':
+      case 'credit':
+      case 'refund':
+        return -1;
+      case 'purchase':
+      case 'debit':
+      default:
+        return 1;
+    }
   }
 
   @override
@@ -67,7 +95,7 @@ class DashboardScreen extends StatelessWidget {
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
-                child: FutureBuilder<Map<String, int>>(
+                child: FutureBuilder<Map<String, dynamic>>(
                   future: _fetchCounts(),
                   builder: (context, snapshot) {
                     final counts = snapshot.data ?? {};
@@ -97,18 +125,21 @@ class DashboardScreen extends StatelessWidget {
                                 '${counts['inventory'] ?? '-'}',
                                 Colors.black87,
                                 Colors.black12),
-                            _statCard('Clients', '${counts['clients'] ?? '-'}',
-                                Colors.black87, Colors.black12),
+                            _statCard(
+                                'Total receivables',
+                                '₹${(counts['totalReceivable'] as double? ?? 0).toStringAsFixed(2)}',
+                                const Color(0xFF185FA5),
+                                const Color(0xFFE6F1FB)),
                             _statCard(
                                 'Low stock',
                                 '${counts['lowStock'] ?? '-'}',
                                 const Color(0xFF854F0B),
                                 const Color(0xFFFAEEDA)),
                             _statCard(
-                                'Suppliers',
-                                '${counts['suppliers'] ?? '-'}',
-                                Colors.black87,
-                                Colors.black12),
+                                'Total payable',
+                                '₹${(counts['totalPayable'] as double? ?? 0).toStringAsFixed(2)}',
+                                const Color(0xFFA32D2D),
+                                const Color(0xFFFFEBEB)),
                           ],
                         ),
 

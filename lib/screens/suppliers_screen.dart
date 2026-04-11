@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'party_transactions_screen.dart';
 
 class SuppliersScreen extends StatefulWidget {
   const SuppliersScreen({super.key});
@@ -176,6 +177,35 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 Text(name,
                     style: const TextStyle(
                         fontSize: 15, fontWeight: FontWeight.w600)),
+                StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(FirebaseAuth.instance.currentUser!.uid)
+                      .collection('suppliers')
+                      .doc(docId)
+                      .collection('transactions')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const SizedBox(height: 6);
+                    }
+                    final balance = _calculatePartyBalance(snapshot.data!.docs);
+                    return Container(
+                      margin: const EdgeInsets.only(top: 6, bottom: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFECEC),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text('Payable: ${balance.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFFA32D2D))),
+                    );
+                  },
+                ),
                 const SizedBox(height: 4),
                 if (material.isNotEmpty)
                   Container(
@@ -222,6 +252,20 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           Column(
             children: [
               IconButton(
+                icon: const Icon(Icons.receipt_long,
+                    size: 18, color: Colors.black38),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PartyTransactionsScreen(
+                      partyId: docId,
+                      partyName: name,
+                      isClient: false,
+                    ),
+                  ),
+                ),
+              ),
+              IconButton(
                 icon: const Icon(Icons.edit_outlined,
                     size: 18, color: Colors.black38),
                 onPressed: () => _showSupplierForm(context, docId, data),
@@ -236,6 +280,31 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         ],
       ),
     );
+  }
+
+  double _calculatePartyBalance(List<QueryDocumentSnapshot> docs) {
+    double balance = 0;
+    for (final doc in docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final amount = (data['amount'] as num?)?.toDouble() ?? 0;
+      final type = (data['type'] ?? '').toString().toLowerCase();
+      final sign = _transactionSign(type);
+      balance += amount * sign;
+    }
+    return balance;
+  }
+
+  double _transactionSign(String type) {
+    switch (type) {
+      case 'payment':
+      case 'credit':
+      case 'refund':
+        return -1;
+      case 'purchase':
+      case 'debit':
+      default:
+        return 1;
+    }
   }
 
   void _showSupplierForm(
