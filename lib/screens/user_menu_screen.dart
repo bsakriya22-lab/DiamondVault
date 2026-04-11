@@ -33,35 +33,129 @@ class UserMenuScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.black12, width: 0.5),
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1A1A2E),
-                      shape: BoxShape.circle,
-                    ),
-                    child:
-                        const Icon(Icons.person, size: 28, color: Colors.white),
+                  Row(
+                    children: [
+                      Container(
+                        width: 56,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1A1A2E),
+                          shape: BoxShape.circle,
+                        ),
+                        child:
+                            const Icon(Icons.person, size: 28, color: Colors.white),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Account',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black45,
+                                    fontWeight: FontWeight.w500)),
+                            const SizedBox(height: 4),
+                            Text(user?.email ?? 'User',
+                                style: const TextStyle(
+                                    fontSize: 14, fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Account',
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.black45,
-                                fontWeight: FontWeight.w500)),
-                        const SizedBox(height: 4),
-                        Text(user?.email ?? 'User',
-                            style: const TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.w600)),
-                      ],
+                  if (user != null && !user.emailVerified) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.warning_amber_rounded,
+                                  color: Colors.orange, size: 20),
+                              const SizedBox(width: 8),
+                              const Text('Email not verified',
+                                  style: TextStyle(
+                                      color: Colors.orange,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14)),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                              'Please verify your email to access all features.',
+                              style: TextStyle(
+                                  color: Colors.black87, fontSize: 12)),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                try {
+                                  await user.sendEmailVerification();
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Verification email sent!'),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Failed to send verification email.'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                textStyle: const TextStyle(fontSize: 12),
+                              ),
+                              child: const Text('Send Verification Email'),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ] else if (user != null && user.emailVerified) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.green.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.verified, color: Colors.green, size: 16),
+                          const SizedBox(width: 6),
+                          const Text('Email verified',
+                              style: TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -77,6 +171,7 @@ class UserMenuScreen extends StatelessWidget {
               label: 'Clients',
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const ClientsScreen())),
+              requiresVerification: true,
             ),
             const SizedBox(height: 8),
             _menuItem(
@@ -85,6 +180,7 @@ class UserMenuScreen extends StatelessWidget {
               label: 'Suppliers',
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const SuppliersScreen())),
+              requiresVerification: true,
             ),
 
             const SizedBox(height: 24),
@@ -99,6 +195,7 @@ class UserMenuScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                       builder: (_) => const PriceSettingsScreen())),
+              requiresVerification: true,
             ),
 
             const SizedBox(height: 32),
@@ -172,26 +269,42 @@ class UserMenuScreen extends StatelessWidget {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    bool requiresVerification = true,
   }) {
+    final user = FirebaseAuth.instance.currentUser;
+    final isVerified = user?.emailVerified ?? false;
+    final isDisabled = requiresVerification && !isVerified;
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: isDisabled ? null : onTap,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDisabled ? Colors.grey.withOpacity(0.1) : Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.black12, width: 0.5),
+          border: Border.all(
+              color: isDisabled ? Colors.grey.withOpacity(0.3) : Colors.black12,
+              width: 0.5),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 20, color: const Color(0xFF1A1A2E)),
+            Icon(icon,
+                size: 20,
+                color: isDisabled ? Colors.grey : const Color(0xFF1A1A2E)),
             const SizedBox(width: 12),
             Expanded(
               child: Text(label,
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w500)),
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: isDisabled ? Colors.grey : Colors.black)),
             ),
-            Icon(Icons.arrow_forward_ios, size: 14, color: Colors.black38),
+            if (isDisabled)
+              const Text('Verify email',
+                  style: TextStyle(fontSize: 12, color: Colors.orange))
+            else
+              Icon(Icons.arrow_forward_ios,
+                  size: 14, color: Colors.black38),
           ],
         ),
       ),

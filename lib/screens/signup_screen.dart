@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dashboard_screen.dart';
+import 'main_navigation_wrapper.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -47,9 +47,11 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
         );
 
-        // Navigate to dashboard after successful signup
+        // Navigate to menu for unverified users, dashboard for verified
+        final user = FirebaseAuth.instance.currentUser;
+        final targetIndex = (user?.emailVerified ?? false) ? 0 : 4;
         Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (_) => const DashboardScreen()));
+            MaterialPageRoute(builder: (_) => MainNavigationWrapper(initialIndex: targetIndex)));
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
