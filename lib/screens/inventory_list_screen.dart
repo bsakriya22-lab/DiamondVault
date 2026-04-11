@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:csv/csv.dart';
 import 'add_item_screen.dart';
 import 'item_detail_screen.dart';
 
@@ -50,6 +52,13 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
         title: const Text('Inventory',
             style: TextStyle(color: Colors.white, fontSize: 17)),
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.upload_file),
+            onPressed: _uploadCsv,
+            tooltip: 'Upload CSV',
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF1A1A2E),
@@ -193,6 +202,79 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _uploadCsv() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+        withData: true,
+      );
+
+      if (result == null || result.files.isEmpty) return;
+
+      final file = result.files.first;
+      final csvString = String.fromCharCodes(file.bytes!);
+      final csvTable = const CsvToListConverter().convert(csvString);
+
+      if (csvTable.isEmpty) {
+        _showSnackBar('CSV file is empty');
+        return;
+      }
+
+      final headers = csvTable[0].map((e) => e.toString().trim()).toList();
+      final requiredHeaders = ['serialNumber', 'name', 'itemCategory', 'goldKarat', 'goldWeightGrams', 'stockCount'];
+
+      for (final req in requiredHeaders) {
+        if (!headers.contains(req)) {
+          _showSnackBar('CSV must contain column: $req');
+          return;
+        }
+      }
+
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      final batch = FirebaseFirestore.instance.batch();
+      int uploaded = 0;
+
+      for (int i = 1; i < csvTable.length; i++) {
+        final row = csvTable[i];
+        if (row.length != headers.length) continue;
+
+        final data = <String, dynamic>{};
+        for (int j = 0; j < headers.length; j++) {
+          final header = headers[j];
+          final value = row[j];
+          if (header == 'goldWeightGrams' || header == 'stockCount') {
+            data[header] = num.tryParse(value.toString())?.toDouble() ?? 0;
+          } else {
+            data[header] = value.toString();
+          }
+        }
+
+        data['createdAt'] = FieldValue.serverTimestamp();
+        data['updatedAt'] = FieldValue.serverTimestamp();
+
+        final docRef = FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('inventory')
+            .doc();
+        batch.set(docRef, data);
+        uploaded++;
+      }
+
+      await batch.commit();
+      _showSnackBar('Uploaded $uploaded items successfully');
+    } catch (e) {
+      _showSnackBar('Error uploading CSV: $e');
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 
