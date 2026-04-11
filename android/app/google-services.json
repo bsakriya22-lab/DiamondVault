@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "285852322280",
+    "project_id": "diamondvault-e6fb3",
+    "storage_bucket": "diamondvault-e6fb3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:285852322280:android:bd85b1fad077b647a17c5d",
+        "android_client_info": {
+          "package_name": "com.example.diamond_vault"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRa1fTeEHyF614RI4QSyxkoJw4Se_DRVs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
