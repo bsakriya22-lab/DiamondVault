@@ -49,15 +49,15 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F0),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         title: const Text('Suppliers',
             style: TextStyle(color: Colors.white, fontSize: 17)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         child: const Icon(Icons.add_business, color: Colors.white),
         onPressed: () => _showSupplierForm(context, null, null),
       ),
@@ -65,7 +65,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         children: [
           // Search bar
           Container(
-            color: const Color(0xFF1A1A2E),
+            color: Theme.of(context).appBarTheme.backgroundColor,
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: TextField(
               onChanged: (v) => setState(() => _search = v.toLowerCase()),

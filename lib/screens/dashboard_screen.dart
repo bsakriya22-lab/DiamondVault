@@ -66,7 +66,7 @@ class DashboardScreen extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F0),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,20 +74,21 @@ class DashboardScreen extends StatelessWidget {
             // Top bar
             Container(
               width: double.infinity,
-              color: const Color(0xFF1A1A2E),
+              color: Theme.of(context).appBarTheme.backgroundColor,
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('💎 DiamondVault',
+                  Text('💎 DiamondVault',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).appBarTheme.foregroundColor,
                           fontSize: 20,
                           fontWeight: FontWeight.w600)),
                   const SizedBox(height: 4),
                   Text(user?.email ?? '',
-                      style:
-                          const TextStyle(color: Colors.white54, fontSize: 12)),
+                      style: TextStyle(
+                          color: Theme.of(context).appBarTheme.foregroundColor?.withOpacity(0.7),
+                          fontSize: 12)),
                 ],
               ),
             ),

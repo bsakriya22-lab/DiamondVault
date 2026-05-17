@@ -81,7 +81,7 @@ class _PartyTransactionsScreenState extends State<PartyTransactionsScreen> {
                   decoration: InputDecoration(
                     labelText: 'Type',
                     filled: true,
-                    fillColor: const Color(0xFFF9F9F9),
+                    fillColor: Theme.of(context).cardColor,
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: const BorderSide(
@@ -132,7 +132,7 @@ class _PartyTransactionsScreenState extends State<PartyTransactionsScreen> {
                     labelText: 'Note',
                     hintText: 'Optional transaction details',
                     filled: true,
-                    fillColor: const Color(0xFFF9F9F9),
+                    fillColor: Theme.of(context).cardColor,
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: const BorderSide(
@@ -144,7 +144,7 @@ class _PartyTransactionsScreenState extends State<PartyTransactionsScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1A1A2E),
+                      backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -176,15 +176,15 @@ class _PartyTransactionsScreenState extends State<PartyTransactionsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F0),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         title: Text('${widget.partyName} Transactions',
             style: const TextStyle(color: Colors.white, fontSize: 17)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         child: const Icon(Icons.add, color: Colors.white),
         onPressed: _showAddTransactionSheet,
       ),

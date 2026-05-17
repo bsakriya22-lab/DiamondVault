@@ -24,9 +24,9 @@ class ItemDetailScreen extends StatelessWidget {
     final goldWeight = itemData['goldWeightGrams'] ?? 0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F0),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         foregroundColor: Colors.white,
         title: const Text('Item Details', style: TextStyle(fontSize: 17)),
         actions: [
@@ -149,34 +149,66 @@ class ItemDetailScreen extends StatelessWidget {
               title: 'Diamonds',
               icon: '💎',
               color: const Color(0xFFE6F1FB),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: (itemData['diamonds'] as List<dynamic>)
-                    .asMap()
-                    .entries
-                    .map((e) {
-                  final d = e.value;
-                  final idx = e.key;
-                  final dcat = d['category'] ?? '';
-                  final carats = d['totalCarats'] ?? 0;
-                  final pieces = d['pieces'] ?? 0;
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (idx > 0) const SizedBox(height: 12),
-                      Text('Group ${idx + 1}',
-                          style: const TextStyle(
-                              fontSize: 13, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 6),
-                      _detailRow('Total Carats', '$carats'),
-                      _detailRow('Pieces', '$pieces'),
-                      _detailRow('Category', dcat),
-                      _detailRow('Per Stone',
-                          '${(carats / pieces).toStringAsFixed(2)} carat'),
-                    ],
-                  );
-                }).toList(),
-              ),
+              child: Builder(builder: (context) {
+                final diamonds = (itemData['diamonds'] as List<dynamic>)
+                    .whereType<Map<String, dynamic>>()
+                    .toList();
+                final totalDiamondWeight = diamonds.fold<double>(
+                    0.0,
+                    (acc, d) =>
+                        acc +
+                        (d['totalCarats'] is num
+                            ? (d['totalCarats'] as num).toDouble()
+                            : 0));
+                final totalDiamondPieces = diamonds.fold<int>(
+                    0,
+                    (acc, d) =>
+                        acc +
+                        (d['pieces'] is num
+                            ? (d['pieces'] as num).toInt()
+                            : 0));
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _detailRow('Total diamond weight',
+                        '${totalDiamondWeight.toStringAsFixed(2)} ct'),
+                    _detailRow('Total pieces', '$totalDiamondPieces'),
+                    const SizedBox(height: 12),
+                    ...diamonds.asMap().entries.map((e) {
+                      final d = e.value;
+                      final idx = e.key;
+                      final dcat = d['category'] ?? '';
+                      final carats = d['totalCarats'] ?? 0;
+                      final pieces = d['pieces'] ?? 0;
+                      final perStone = (pieces is num && pieces > 0)
+                          ? (carats is num
+                              ? (carats as num).toDouble() /
+                                  (pieces as num).toDouble()
+                              : 0)
+                          : 0;
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 12),
+                          Text('Diamond ${idx + 1}',
+                              style: const TextStyle(
+                                  fontSize: 13, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 6),
+                          _detailRow('Category', dcat),
+                          _detailRow('Weight',
+                              '${(carats as num).toDouble().toStringAsFixed(2)} ct'),
+                          _detailRow('Pieces', '$pieces'),
+                          if (pieces is num && pieces > 0)
+                            _detailRow('Per stone',
+                                '${perStone.toStringAsFixed(2)} ct'),
+                        ],
+                      );
+                    }),
+                  ],
+                );
+              }),
             ),
             const SizedBox(height: 14),
           ],

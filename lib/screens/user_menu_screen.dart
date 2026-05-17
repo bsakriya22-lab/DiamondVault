@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import 'price_settings_screen.dart';
 import 'clients_screen.dart';
 import 'suppliers_screen.dart';
 import 'login_screen.dart';
+import '../theme_provider.dart';
 
 class UserMenuScreen extends StatelessWidget {
   const UserMenuScreen({super.key});
@@ -13,9 +15,9 @@ class UserMenuScreen extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F0),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         foregroundColor: Colors.white,
         title: const Text('Menu', style: TextStyle(fontSize: 17)),
         elevation: 0,
@@ -29,7 +31,7 @@ class UserMenuScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.black12, width: 0.5),
               ),
@@ -41,7 +43,7 @@ class UserMenuScreen extends StatelessWidget {
                         width: 56,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1A1A2E),
+                          color: Theme.of(context).appBarTheme.backgroundColor,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.person,
@@ -52,15 +54,23 @@ class UserMenuScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Account',
+                            Text('Account',
                                 style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.black45,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color,
                                     fontWeight: FontWeight.w500)),
                             const SizedBox(height: 4),
                             Text(user?.email ?? 'User',
-                                style: const TextStyle(
-                                    fontSize: 14, fontWeight: FontWeight.w600)),
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge
+                                        ?.color)),
                           ],
                         ),
                       ),
@@ -92,10 +102,14 @@ class UserMenuScreen extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          const Text(
+                          Text(
                               'Please verify your email to access all features.',
                               style: TextStyle(
-                                  color: Colors.black87, fontSize: 12)),
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.color,
+                                  fontSize: 12)),
                           const SizedBox(height: 8),
                           SizedBox(
                             width: double.infinity,
@@ -194,6 +208,8 @@ class UserMenuScreen extends StatelessWidget {
 
             _sectionLabel('Settings'),
             const SizedBox(height: 8),
+            _themeToggleItem(context),
+            const SizedBox(height: 8),
             _menuItem(
               context,
               icon: Icons.currency_exchange,
@@ -271,6 +287,96 @@ class UserMenuScreen extends StatelessWidget {
     );
   }
 
+  Widget _themeToggleItem(BuildContext context) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+                color: Theme.of(context).dividerColor.withOpacity(0.3),
+                width: 0.5),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    themeProvider.isDarkMode
+                        ? Icons.dark_mode
+                        : Icons.light_mode,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Appearance',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Follow system theme toggle
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Follow system theme',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
+                      ),
+                    ),
+                  ),
+                  Switch(
+                    value: themeProvider.followSystemTheme,
+                    onChanged: (value) {
+                      themeProvider.setFollowSystemTheme(value);
+                    },
+                    activeColor: Theme.of(context).colorScheme.primary,
+                  ),
+                ],
+              ),
+              if (!themeProvider.followSystemTheme) ...[
+                const SizedBox(height: 8),
+                // Manual dark mode toggle
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Dark mode',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                        ),
+                      ),
+                    ),
+                    Switch(
+                      value: themeProvider.isDarkMode,
+                      onChanged: (value) {
+                        themeProvider.setDarkMode(value);
+                      },
+                      activeColor: Theme.of(context).colorScheme.primary,
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _menuItem(
     BuildContext context, {
     required IconData icon,
@@ -287,30 +393,39 @@ class UserMenuScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isDisabled ? Colors.grey.withOpacity(0.1) : Colors.white,
+          color: isDisabled
+              ? Theme.of(context).disabledColor.withOpacity(0.1)
+              : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-              color: isDisabled ? Colors.grey.withOpacity(0.3) : Colors.black12,
+              color: Theme.of(context).dividerColor.withOpacity(0.3),
               width: 0.5),
         ),
         child: Row(
           children: [
             Icon(icon,
                 size: 20,
-                color: isDisabled ? Colors.grey : const Color(0xFF1A1A2E)),
+                color: isDisabled
+                    ? Theme.of(context).disabledColor
+                    : Theme.of(context).colorScheme.primary),
             const SizedBox(width: 12),
             Expanded(
               child: Text(label,
                   style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: isDisabled ? Colors.grey : Colors.black)),
+                      color: isDisabled
+                          ? Theme.of(context).disabledColor
+                          : Theme.of(context).textTheme.bodyLarge?.color)),
             ),
             if (isDisabled)
-              const Text('Verify email',
-                  style: TextStyle(fontSize: 12, color: Colors.orange))
+              Text('Verify email',
+                  style: TextStyle(
+                      fontSize: 12, color: Theme.of(context).colorScheme.error))
             else
-              Icon(Icons.arrow_forward_ios, size: 14, color: Colors.black38),
+              Icon(Icons.arrow_forward_ios,
+                  size: 14,
+                  color: Theme.of(context).textTheme.bodySmall?.color),
           ],
         ),
       ),

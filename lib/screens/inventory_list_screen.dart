@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:csv/csv.dart';
-import 'dart:convert';
-import 'dart:typed_data';
-import 'package:flutter/foundation.dart';
-import 'package:universal_html/html.dart' as html;
 import 'add_item_screen.dart';
 import 'item_detail_screen.dart';
 
@@ -50,22 +44,15 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F0),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         title: const Text('Inventory',
             style: TextStyle(color: Colors.white, fontSize: 17)),
         iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.upload_file),
-            onPressed: _uploadCsv,
-            tooltip: 'Upload CSV',
-          ),
-        ],
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         child: const Icon(Icons.add, color: Colors.white),
         onPressed: () => Navigator.push(
             context, MaterialPageRoute(builder: (_) => const AddItemScreen())),
@@ -74,7 +61,7 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
         children: [
           // ── Search + category filters ─────────────────────────
           Container(
-            color: const Color(0xFF1A1A2E),
+            color: Theme.of(context).appBarTheme.backgroundColor,
             child: Column(
               children: [
                 // Search bar
@@ -82,12 +69,11 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                   child: TextField(
                     onChanged: (v) => setState(() => _search = v.toLowerCase()),
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
                     decoration: InputDecoration(
                       hintText: 'Search name, SN, category...',
-                      hintStyle: const TextStyle(color: Colors.white38),
-                      prefixIcon:
-                          const Icon(Icons.search, color: Colors.white38),
+                      hintStyle: TextStyle(color: Theme.of(context).inputDecorationTheme.hintStyle?.color),
+                      prefixIcon: Icon(Icons.search, color: Theme.of(context).inputDecorationTheme.hintStyle?.color),
                       filled: true,
                       fillColor: Colors.white10,
                       border: OutlineInputBorder(
@@ -209,126 +195,6 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
     );
   }
 
-  Future<void> _uploadCsv() async {
-    try {
-      String csvString;
-      if (kIsWeb) {
-        // Web-specific file picking
-        final html.FileUploadInputElement uploadInput =
-            html.FileUploadInputElement();
-        uploadInput.accept = '.csv';
-        uploadInput.click();
-
-        await uploadInput.onChange.first;
-        if (uploadInput.files!.isEmpty) return;
-
-        final file = uploadInput.files![0];
-        final reader = html.FileReader();
-        reader.readAsText(file);
-        await reader.onLoad.first;
-        csvString = reader.result as String;
-      } else {
-        // Mobile/desktop
-        final result = await FilePicker.platform.pickFiles(
-          type: FileType.any,
-          withData: true,
-        );
-
-        if (result == null || result.files.isEmpty) return;
-
-        final file = result.files.first;
-        if (!file.name!.toLowerCase().endsWith('.csv')) {
-          _showSnackBar('Please select a CSV file');
-          return;
-        }
-        csvString = String.fromCharCodes(file.bytes!);
-      }
-      final csvTable = const CsvToListConverter().convert(csvString);
-
-      if (csvTable.isEmpty) {
-        _showSnackBar('CSV file is empty');
-        return;
-      }
-
-      final headers = csvTable[0].map((e) => e.toString().trim()).toList();
-      final requiredHeaders = ['serialNumber', 'diamondCarats', 'diamondPieces'];
-
-      for (final req in requiredHeaders) {
-        if (!headers.contains(req)) {
-          _showSnackBar('CSV must contain columns: serialNumber, diamondCarats, diamondPieces');
-          return;
-        }
-      }
-
-      final userId = FirebaseAuth.instance.currentUser!.uid;
-      final batch = FirebaseFirestore.instance.batch();
-      int updated = 0;
-
-      // Group by serialNumber
-      final updates = <String, List<Map<String, dynamic>>>{};
-
-      for (int i = 1; i < csvTable.length; i++) {
-        final row = csvTable[i];
-        if (row.length != headers.length) continue;
-
-        final serialNumber = row[headers.indexOf('serialNumber')].toString().trim();
-        final carats = double.tryParse(row[headers.indexOf('diamondCarats')].toString()) ?? 0;
-        final pieces = int.tryParse(row[headers.indexOf('diamondPieces')].toString()) ?? 0;
-
-        if (serialNumber.isEmpty || carats <= 0 || pieces <= 0) continue;
-
-        final category = _getDiamondCategory(carats);
-        final diamond = {
-          'category': category,
-          'totalCarats': carats,
-          'pieces': pieces,
-        };
-
-        updates.putIfAbsent(serialNumber, () => []).add(diamond);
-      }
-
-      // Update each item
-      for (final entry in updates.entries) {
-        final serialNumber = entry.key;
-        final diamonds = entry.value;
-
-        // Find the doc by serialNumber
-        final query = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .collection('inventory')
-            .where('serialNumber', isEqualTo: serialNumber)
-            .limit(1)
-            .get();
-
-        if (query.docs.isNotEmpty) {
-          final docRef = query.docs.first.reference;
-          batch.update(docRef, {'diamonds': diamonds});
-          updated++;
-        }
-      }
-
-      await batch.commit();
-      _showSnackBar('Updated $updated items with diamond data');
-    } catch (e) {
-      _showSnackBar('Error uploading CSV: $e');
-    }
-  }
-
-  String _getDiamondCategory(double carats) {
-    if (carats <= 0.06) return '0–0.06 carat';
-    if (carats <= 0.13) return '0.07–0.13 carat';
-    if (carats <= 0.18) return '0.14–0.18 carat';
-    if (carats <= 0.22) return '0.19–0.22 carat';
-    if (carats <= 0.27) return '0.23–0.27 carat';
-    if (carats <= 0.36) return '0.28–0.36 carat';
-    if (carats <= 0.43) return '0.37–0.43 carat';
-    if (carats <= 0.65) return '0.44–0.65 carat';
-    if (carats <= 0.80) return '0.66–0.80 carat';
-    if (carats <= 0.99) return '0.81–0.99 carat';
-    return '1 carat & above';
-  }
-
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -368,7 +234,7 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.black12, width: 0.5),
         ),
@@ -516,7 +382,7 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
             onPressed: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const AddItemScreen())),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1A1A2E),
+              backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(

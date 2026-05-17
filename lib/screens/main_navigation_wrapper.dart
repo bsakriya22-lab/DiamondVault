@@ -4,6 +4,7 @@ import 'dashboard_screen.dart';
 import 'inventory_list_screen.dart';
 import 'price_calculator_screen.dart';
 import 'parties_screen.dart';
+import 'on_demand_price_screen.dart';
 import 'user_menu_screen.dart';
 
 class MainNavigationWrapper extends StatefulWidget {
@@ -23,6 +24,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
     const DashboardScreen(),
     const InventoryListScreen(),
     const PriceCalculatorScreen(),
+    const OnDemandPriceScreen(),
     const PartiesScreen(),
     const UserMenuScreen(),
   ];
@@ -45,8 +47,8 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   }
 
   void _onTabTapped(int index) {
-    if (!_isEmailVerified && index != 4) {
-      // Only allow menu (index 4) for unverified users
+    if (!_isEmailVerified && index != 5) {
+      // Only allow menu (index 5) for unverified users
       _showVerificationDialog();
       return;
     }
@@ -138,9 +140,16 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF1A1A2E),
-        selectedItemColor: Colors.white,
-        unselectedItemColor: _isEmailVerified ? Colors.white54 : Colors.white24,
+        backgroundColor:
+            Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+        selectedItemColor:
+            Theme.of(context).bottomNavigationBarTheme.selectedItemColor,
+        unselectedItemColor: _isEmailVerified
+            ? Theme.of(context).bottomNavigationBarTheme.unselectedItemColor
+            : Theme.of(context)
+                .bottomNavigationBarTheme
+                .unselectedItemColor
+                ?.withOpacity(0.4),
         selectedFontSize: 12,
         unselectedFontSize: 12,
         onTap: _onTabTapped,
@@ -177,6 +186,17 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
               color: !_isEmailVerified ? Colors.white24 : null,
             ),
             label: 'Calculator',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.flash_on_outlined,
+              color: !_isEmailVerified ? Colors.white24 : null,
+            ),
+            activeIcon: Icon(
+              Icons.flash_on,
+              color: !_isEmailVerified ? Colors.white24 : null,
+            ),
+            label: 'On-demand',
           ),
           BottomNavigationBarItem(
             icon: Icon(

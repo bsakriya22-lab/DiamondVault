@@ -1,0 +1,12 @@
+// Firestore rules to require authenticated users for all reads/writes.
+// Adjust matches and granular rules as needed for your app.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // By default, deny all access.
+    // Allow only authenticated users to read/write any document.
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

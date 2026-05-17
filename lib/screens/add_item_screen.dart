@@ -360,9 +360,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F0),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         foregroundColor: Colors.white,
         title: Text(_isEditing ? 'Edit item' : 'Add new piece',
             style: const TextStyle(fontSize: 17)),
@@ -446,7 +446,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
                       duration: const Duration(milliseconds: 150),
                       width: 72,
                       decoration: BoxDecoration(
-                        color: sel ? const Color(0xFF1A1A2E) : Colors.white,
+                        color: sel
+                            ? Theme.of(context).appBarTheme.backgroundColor
+                            : Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: sel ? const Color(0xFF1A1A2E) : Colors.black12,
@@ -649,7 +651,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         fontWeight: FontWeight.w600,
                         color: getCategoryColor(g.category!))),
                 const Spacer(),
-                Text('${(g.weightPerStoneCents! / 100).toStringAsFixed(2)} ct/stone',
+                Text(
+                    '${(g.weightPerStoneCents! / 100).toStringAsFixed(2)} ct/stone',
                     style: TextStyle(
                         fontSize: 12,
                         color: getCategoryColor(g.category!).withOpacity(0.8))),

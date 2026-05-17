@@ -130,12 +130,15 @@ class _PriceSettingsScreenState extends State<PriceSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F0),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: const Text('Price settings',
-            style: TextStyle(color: Colors.white, fontSize: 17)),
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        title: Text('Price settings',
+            style: TextStyle(
+                color: Theme.of(context).appBarTheme.foregroundColor,
+                fontSize: 17)),
+        iconTheme:
+            IconThemeData(color: Theme.of(context).appBarTheme.foregroundColor),
         actions: [
           TextButton(
             onPressed: _saving ? null : _saveRates,
@@ -239,8 +242,12 @@ class _PriceSettingsScreenState extends State<PriceSettingsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: bg,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).cardColor
+            : bg,
         borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+            color: Theme.of(context).dividerColor.withOpacity(0.3), width: 0.5),
       ),
       child: Row(children: [
         Icon(icon, size: 16, color: fg),
@@ -262,9 +269,10 @@ class _PriceSettingsScreenState extends State<PriceSettingsScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.black12, width: 0.5),
+        border: Border.all(
+            color: Theme.of(context).dividerColor.withOpacity(0.3), width: 0.5),
       ),
       child: Row(children: [
         Expanded(
@@ -283,7 +291,9 @@ class _PriceSettingsScreenState extends State<PriceSettingsScreen> {
               suffixText: unit,
               suffixStyle: TextStyle(fontSize: 11, color: fg.withOpacity(0.7)),
               filled: true,
-              fillColor: bg.withOpacity(0.5),
+              fillColor: Theme.of(context).brightness == Brightness.dark
+                  ? Theme.of(context).cardColor
+                  : bg.withOpacity(0.5),
               isDense: true,
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),

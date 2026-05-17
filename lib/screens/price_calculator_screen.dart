@@ -175,9 +175,9 @@ class _PriceCalculatorScreenState extends State<PriceCalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F0),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         title: const Text('Price calculator',
             style: TextStyle(color: Colors.white, fontSize: 17)),
         iconTheme: const IconThemeData(color: Colors.white),
@@ -191,7 +191,7 @@ class _PriceCalculatorScreenState extends State<PriceCalculatorScreen> {
                 _sectionLabel('Select category'),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.black12, width: 0.5),
                   ),

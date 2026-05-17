@@ -28,9 +28,9 @@ class _PartiesScreenState extends State<PartiesScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F0),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         title: const Text('Parties',
             style: TextStyle(color: Colors.white, fontSize: 17)),
         elevation: 0,
